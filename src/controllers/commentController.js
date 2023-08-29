@@ -1,6 +1,6 @@
 const Comment = require("../models/Comment");
 
-exports.createComment = async (req, res) => {
+exports.addComment = async (req, res) => {
   try {
     const { photoId, text } = req.body;
     const userId = req.user.id;
@@ -11,6 +11,23 @@ exports.createComment = async (req, res) => {
       .json({ message: "Comment created successfully", commentId });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAllCommentsForPhoto = async (req, res) => {
+  try {
+    const { photoId } = req.params;
+    const comments = await Comment.findByPhotoId(photoId);
+
+    if (!comments || comments.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No comments found for this photo" });
+    }
+
+    res.status(200).send(comments);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
   }
 };
 

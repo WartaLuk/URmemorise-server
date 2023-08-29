@@ -16,6 +16,38 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.activateAccount = async (req, res) => {
+  try {
+    const token = req.body.token;
+
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        return res
+          .status(401)
+          .send({ message: "Token is invalid or has expired." });
+      }
+
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(404).send({ message: "User not found." });
+      }
+
+      if (user.isActivated) {
+        return res
+          .status(400)
+          .send({ message: "Account is already activated." });
+      }
+
+      user.isActivated = true;
+      await user.save();
+
+      res.status(200).send({ message: "Account successfully activated." });
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
 exports.login = async (req, res) => {
   try {
     const user = await User.findByEmail(req.body.email);
@@ -105,6 +137,23 @@ exports.deleteAccount = async (req, res) => {
   }
 };
 
+exports.getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    delete user.password;
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error: " + error.message });
+  }
+};
+
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll();
@@ -113,3 +162,27 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { username, email } = req.body;
+
+    const updatedFields = {
+      username,
+      email,
+    };
+
+    const success = await User.updateById(userId, updatedFields);
+
+    if (!success) {
+      return res.status(400).json({ message: "Failed to update user profile" });
+    }
+
+    res.status(200).json({ message: "User profile updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error: " + error.message });
+  }
+};
+
+

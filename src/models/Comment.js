@@ -45,6 +45,12 @@ class Comment {
     const comment = await db.get(sql, [id]);
     return comment;
   }
+
+  static async findByPhotoId(photoId) {
+    const sql = "SELECT * FROM comments WHERE photoId = ?";
+    const comments = await db.all(sql, [photoId]);
+    return comments;
+  }
 }
 
 module.exports = Comment;

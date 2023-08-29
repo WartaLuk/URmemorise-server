@@ -67,6 +67,12 @@ class Photo {
     const photo = await db.get(sql, [id]);
     return photo;
   }
+
+  static async findAll() {
+    const sql = "SELECT * FROM photos";
+    const photos = await db.all(sql);
+    return photos;
+  }
 }
 
 module.exports = Photo;
